@@ -2,7 +2,7 @@
 
 Generates mock event data, finds participation hot spots and under-served
 "opportunity zones", and writes a standalone interactive map to
-event_heatmap.html.
+docs/index.html.
 
     uv run generate_map.py [--no-open]
 """
@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 from folium import plugins
 
-OUTPUT = Path(__file__).parent / "event_heatmap.html"
+OUTPUT = Path(__file__).parent / "docs" / "index.html"  # docs/ is served by GitHub Pages
 SG_CENTER = (1.3521, 103.8198)
 SG_VIEW = [[1.22, 103.62], [1.48, 104.05]]
 GRADIENT = {0.2: "#2c7bb6", 0.4: "#abd9e9", 0.6: "#ffffbf", 0.8: "#fdae61", 1.0: "#d7191c"}
@@ -245,6 +245,7 @@ def main():
 
     df = make_events()
     hot, opp = find_hotspots(df)
+    OUTPUT.parent.mkdir(exist_ok=True)
     build_map(df, hot, opp).save(str(OUTPUT))
 
     print(f"{len(df):,} mock events, overall participation {df['participation_rate'].mean():.1%}")

@@ -7,7 +7,7 @@ types, 25 locations) and plots **participation rate** (attendees / invited) as a
 
 ```bash
 uv sync
-uv run generate_map.py            # writes event_heatmap.html and opens it
+uv run generate_map.py            # writes docs/index.html and opens it
 uv run generate_map.py --no-open  # just write the file
 ```
 
