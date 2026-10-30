@@ -214,7 +214,7 @@ def panel_html(df, hot, opp):
 
     return f"""
     <style>
-      #panel {{position:fixed; top:10px; left:56px; z-index:9999; width:270px; max-height:calc(100vh - 20px);
+      #panel {{position:fixed; top:10px; left:56px; z-index:9999; width:270px; max-height:calc(100vh - 110px);
         overflow:auto; background:rgba(255,255,255,.95); border-radius:8px; padding:12px 14px;
         font:13px/1.4 system-ui,sans-serif; color:#222; box-shadow:0 2px 10px rgba(0,0,0,.25)}}
       #panel h3 {{margin:0 0 2px; font-size:15px}} #panel h4 {{margin:10px 0 3px; font-size:13px}}
@@ -223,7 +223,10 @@ def panel_html(df, hot, opp):
         background:linear-gradient(90deg,{GRADIENT[0.2]},{GRADIENT[0.4]},{GRADIENT[0.6]},{GRADIENT[0.8]},{GRADIENT[1.0]})}}
       #panel .sc {{display:flex; justify-content:space-between; font-size:11px; color:#666}}
       #panel p {{margin:6px 0 0; font-size:12px; color:#444}}
-      @media (max-width:600px) {{ #panel {{width:auto; right:10px; top:auto; bottom:10px; max-height:40vh}}}}
+      .leaflet-control-layers {{max-height:calc(100vh - 250px); overflow:auto}}
+      @media (max-width:600px) {{ #panel {{width:auto; right:10px; max-height:28vh}}
+        .leaflet-top.leaflet-right {{top:calc(28vh + 20px)}} .leaflet-control-minimap {{display:none}}
+        .leaflet-control-layers {{max-height:calc(72vh - 280px)}}}}
     </style>
     <div id="panel">
       <h3>Event participation - Singapore</h3>
