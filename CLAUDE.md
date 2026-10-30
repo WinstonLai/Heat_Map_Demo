@@ -27,7 +27,7 @@ HTML file:
 
 - **Mock data** (`HUBS`, `EVENT_TYPES`, `SEASONALITY` at the top): events are sampled per (hub, event type) pair, with
   supply = hub weight x type affinity. Turnout is `engagement x affinity x seasonality + noise`. The seed is fixed
-  (42), so output is deterministic. The data is deliberately shaped so that Punggol, Sengkang and Yishun have very
+  (49, chosen so the under-served story holds), so output is deterministic. The data is deliberately shaped so that Punggol, Sengkang and Yishun have very
   high turnout but few events; this is the "under-served demand" story the demo tells, so changing hub engagement or
   weights can break the narrative.
 - **Analysis**: `aggregate()` bins events onto a lat/lon grid (`GRID_DEG`, ~1 km). **Hot spots** are the highest-rate

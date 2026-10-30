@@ -64,15 +64,43 @@ EVENT_TYPES = {
     "Music & Concerts": {"Marina Bay": 4, "Sentosa": 3, "Kallang": 3, "Orchard": 1.5},
 }
 
-# month -> participation multiplier per type, for the time slider
+# month -> turnout multiplier per type, for the time slider
 SEASONALITY = {
-    "Fitness & Sports": {1: 1.12, 2: 1.10, 3: 1.06, 11: 0.95, 12: 0.92},
-    "Food & Markets": {11: 1.08, 12: 1.15},
-    "Music & Concerts": {9: 1.08, 10: 1.10, 11: 1.12, 12: 1.15},
+    "Fitness & Sports": {1: 1.12, 2: 1.10, 3: 1.06, 6: 0.94, 9: 0.92, 11: 0.90, 12: 0.88},
+    "Food & Markets": {1: 1.06, 2: 1.08, 5: 0.92, 6: 0.92, 7: 0.92, 11: 1.08, 12: 1.15},
+    "Arts & Culture": {1: 0.92, 2: 0.92, 7: 1.08, 8: 1.12, 9: 1.06, 12: 0.94},
+    "Tech Meetups": {1: 0.92, 4: 1.08, 5: 1.06, 7: 0.94, 10: 1.08, 11: 1.08, 12: 0.92},
+    "Community Volunteering": {1: 0.94, 4: 1.06, 5: 1.12, 6: 1.10, 9: 0.92, 12: 1.08},
+    "Music & Concerts": {1: 0.88, 2: 0.88, 3: 0.90, 4: 0.92, 9: 1.05, 10: 1.10, 11: 1.15, 12: 1.20},
+}
+
+# month -> relative number of events per type (default 1.0), so the footprint moves through the year
+MONTH_VOLUME = {
+    "Fitness & Sports": {1: 2.5, 2: 2.5, 3: 2.0, 4: 1.2, 9: 0.6, 10: 0.5, 11: 0.4, 12: 0.4},
+    "Food & Markets": {1: 1.5, 2: 2.0, 11: 2.2, 12: 3.0, 5: 0.5, 6: 0.5, 7: 0.5},
+    "Arts & Culture": {6: 2.0, 7: 2.5, 8: 3.0, 9: 2.0, 1: 0.4, 2: 0.4, 3: 0.5},
+    "Tech Meetups": {3: 2.0, 4: 2.5, 5: 2.0, 10: 2.5, 11: 2.0, 1: 0.4, 7: 0.5, 12: 0.4},
+    "Community Volunteering": {4: 2.5, 5: 3.0, 6: 2.0, 12: 2.0, 1: 0.5, 8: 0.4, 9: 0.5},
+    "Music & Concerts": {9: 1.8, 10: 2.2, 11: 2.6, 12: 3.0, 1: 0.4, 2: 0.3, 3: 0.4, 4: 0.4, 5: 0.4},
+}
+
+# hub -> {month: volume multiplier} on top of the type profile
+HUB_MONTH_VOLUME = {
+    "Sentosa": {6: 2.5, 7: 3.0, 8: 2.5, 1: 0.3, 2: 0.3},
+    "Marina Bay": {9: 1.8, 12: 2.5},
+    "Orchard": {11: 2.0, 12: 2.5},
+    "Punggol": {1: 2.0, 2: 2.0, 7: 0.5, 8: 0.5},
+    "one-north": {4: 1.8, 10: 1.8},
 }
 
 
-def make_events(seed=42):
+def month_weights(etype, hub):
+    w = np.array([MONTH_VOLUME.get(etype, {}).get(m, 1.0) * HUB_MONTH_VOLUME.get(hub, {}).get(m, 1.0)
+                  for m in range(1, 13)])
+    return w / w.sum()
+
+
+def make_events(seed=49):
     """Mock one year of events: a hub, a type, an invite list and a turnout each."""
     rng = np.random.default_rng(seed)
     pairs = [(hub, etype) for hub in HUBS for etype in EVENT_TYPES]
@@ -84,7 +112,7 @@ def make_events(seed=42):
         lat0, lon0, _, engagement, jitter = HUBS[hub]
         affinity = EVENT_TYPES[etype].get(hub, 1.0)
         for _ in range(n):
-            month = int(rng.integers(1, 13))
+            month = int(rng.choice(12, p=month_weights(etype, hub))) + 1
             season = SEASONALITY.get(etype, {}).get(month, 1.0)
             # a better-matched event type draws slightly better turnout
             p = engagement * (1 + 0.1 * (affinity - 1)) * season + rng.normal(0, 0.05)
@@ -205,7 +233,7 @@ def panel_html(df, hot, opp):
       <h4>&#128293; Hot spots (proven demand)</h4><ol>{items(hot, True)}</ol>
       <h4>&#11088; Opportunity zones</h4><ol>{items(opp, True)}</ol>
       <p>Opportunity zones turn out strongly but host few events: run more events here first.
-      Use the layer control (top right) to compare event types or play the monthly timeline.</p>
+      Press play (bottom left) to watch the year unfold month by month, or use the layer control (top right) to compare event types.</p>
     </div>"""
 
 
@@ -215,7 +243,7 @@ def build_map(df, hot, opp):
     fmap.fit_bounds(SG_VIEW)
 
     heat_opts = dict(gradient=GRADIENT, radius=28, blur=22, min_opacity=0.35, max_zoom=14)
-    plugins.HeatMap(heat_points(df, 0.005), name="All events", show=True, **heat_opts).add_to(fmap)
+    plugins.HeatMap(heat_points(df, 0.005), name="All events", show=False, **heat_opts).add_to(fmap)
     for etype in EVENT_TYPES:
         plugins.HeatMap(heat_points(df[df["event_type"] == etype], 0.006),
                         name=etype, show=False, **heat_opts).add_to(fmap)
@@ -224,7 +252,7 @@ def build_map(df, hot, opp):
     frames = [heat_points(df[df["date"].dt.to_period("M") == m], 0.008) for m in months]
     plugins.HeatMapWithTime(frames, index=[m.strftime("%b %Y") for m in months], name="Monthly timeline",
                             auto_play=False, radius=22, gradient=GRADIENT, min_opacity=0.35,
-                            use_local_extrema=False, display_index=True, show=False).add_to(fmap)
+                            use_local_extrema=False, display_index=True, show=True).add_to(fmap)
 
     add_markers(fmap, hot, "Hot spots", "red", "fire", "hot spot", "Proven demand: keep programming here.")
     add_markers(fmap, opp, "Opportunity zones", "green", "star", "under-served",
