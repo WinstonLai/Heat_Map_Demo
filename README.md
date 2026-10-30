@@ -3,7 +3,7 @@
 A demo of how a heat map helps with event planning. It mocks a year of events across Singapore (1,500 events, 6 event
 types, 25 locations) and plots **participation rate** (attendees / invited) as an interactive heat map.
 
-**Live demo:** https://winstonlai.github.io/Heat_Map_Demo/
+**Live demo:** https://winstonlai.github.io/Heatmap_Demo/
 
 ## Run
 
